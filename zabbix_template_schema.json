@@ -2,7 +2,8 @@
     "$defs": {
         "uuid_field": {
             "description": "Unique field reference",
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
         },
         "tags_def": {
             "description": "Root element for item tags.",
@@ -58,7 +59,7 @@
                         "SNMP_AGENT",
                         "ITEM_TYPE_SCRIPT"
                     ],
-                    "type": ["string", "null"]
+                    "type": ["string"]
                 },
                 "status": {
                     "enum": [
@@ -102,7 +103,50 @@
                     "$ref": "#/$defs/tags_def"
                 }
             },
-            "required": ["uuid", "key", "name"]
+            "allOf": [
+                {
+                    "if": {
+                        "anyOf": [
+                            { "properties": { "type": {"const": "SNMP_AGENT" } } },
+                            { "properties": { "type": {"const": "SNMP_TRAP" } } }
+                        ]
+                    },
+                    "then": {
+                        "properties": { 
+                            "snmp_oid": { 
+                                "description": "SNMP object ID.",
+                                "type": "string"
+                                }
+                            },
+                        "required": [ "snmp_oid" ]
+                    },
+                    "else": {
+                        "not": { "required": [ "snmp_oid" ] }
+                    }
+                },
+                {
+                    "if": {
+                        "anyOf": [
+                            { "properties": { "type": {"const": "TRAP" } } },
+                            { "properties": { "type": {"const": "HTTP_AGENT" } } }
+                        ]
+                    },
+                    "then": {
+                        "properties": { 
+                            "allowed_hosts": { 
+                                "description": "List of IP addresses (comma delimited) of hosts allowed sending data for the item.\n\nUsed by trapper and HTTP agent items.",
+                                "type": "string"
+                                }
+                            },
+                        "required": [ "allowed_hosts" ]
+                    },
+                    "else": {
+                        "not": { "required": [ "allowed_hosts" ] }
+                    }
+                }
+            ],
+            "required": ["uuid", "key", "name"],
+            "unevaluatedProperties": false
         }
     },
     "$schema": "https://json-schema.org/draft/2020-12/schema",
