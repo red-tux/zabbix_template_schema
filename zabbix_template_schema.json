@@ -1,4 +1,89 @@
 {
+    "$defs": {
+        "uuid_field": {
+            "description": "Unique field reference",
+            "type": "string"
+        },
+        "item": {
+            "type": "object",
+            "properties": {
+                "uuid": {
+                    "$ref": "#/$defs/uuid_field"
+                },
+                "name": {
+                    "description": "Name of item",
+                    "type": "string"
+                },
+                "key": {
+                    "description": "Unique key identifier",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Item type to use",
+                    "default": "ZABBIX_PASSIVE",
+                    "enum": [
+                        "ZABBIX_PASSIVE",
+                        "TRAP",
+                        "SIMPLE",
+                        "INTERNAL",
+                        "ZABBIX_ACTIVE",
+                        "EXTERNAL",
+                        "ODBC",
+                        "IPMI",
+                        "SSH",
+                        "TELNET",
+                        "CALCULATED",
+                        "JMX",
+                        "SNMP_TRAP",
+                        "DEPENDENT",
+                        "HTTP_AGENT",
+                        "SNMP_AGENT",
+                        "ITEM_TYPE_SCRIPT"
+                    ],
+                    "type": "string"
+                },
+                "status": {
+                    "enum": [
+                        "ENABLED",
+                        "DISABLED"
+                    ],
+                    "type": "string"
+                },
+                "value_type": {
+                    "description": "Received value type.",
+                    "default": "UNSIGNED",
+                    "enum": [
+                        "FLOAT",
+                        "CHAR",
+                        "LOG",
+                        "UNSIGNED",
+                        "TEXT "
+                    ],
+                    "type": "string"
+                },
+                "delay":{
+                    "type": "string",
+                    "description": "Update interval of the item.\n\nAccepts seconds or a time unit with suffix (30s, 1m, 2h, 1d).\nOptionally one or more custom intervals can be specified either as flexible intervals or scheduling.\nMultiple intervals are separated by a semicolon.\nUser macros may be used. A single macro has to fill the whole field. Multiple macros in a field or macros mixed with text are not supported.\nFlexible intervals may be written as two macros separated by a forward slash (e.g. {$FLEX_INTERVAL}/{$FLEX_PERIOD})."
+                },
+                "history": {
+                    "type": "string",
+                    "description": "A time unit of how long the history data should be stored. Time unit with suffix, user macro or LLD macro."
+                },
+                "trends": {
+                    "type": "string",
+                    "description": "A time unit of how long the trends data should be stored. Time unit with suffix, user macro or LLD macro."
+                },
+                "units": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Item description"
+                }
+            },
+            "required": ["uuid", "key", "name"]
+        }
+    },
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "Zabbix Template",
     "description": "Template for producing Zabbix Templates",
@@ -67,33 +152,7 @@
                             "items": {
                                 "type": "array",
                                 "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "uuid": {
-                                            "description": "Unique field reference",
-                                            "type": "string"
-                                        },
-                                        "name": {
-                                            "description": "Name of item",
-                                            "type": "string"
-                                        },
-                                        "type": {
-                                            "description": "Item type to use",
-                                            "oneOf": [
-                                                {
-                                                    "enum": [
-                                                        "SNMP_AGENT"
-                                                    ],
-                                                    "type": "string"
-                                                }
-                                            ]
-                                        },
-                                        "key": {
-                                            "description": "Unique key identifier",
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": ["uuid"]
+                                    "$ref": "#/$defs/item"
                                 }
                             }
                         },
