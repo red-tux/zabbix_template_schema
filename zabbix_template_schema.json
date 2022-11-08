@@ -4,6 +4,24 @@
             "description": "Unique field reference",
             "type": "string"
         },
+        "tags_def": {
+            "description": "Root element for item tags.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "tag": {
+                        "description": "Tag name.",
+                        "type": "string"
+                    },
+                    "value": {
+                        "description": "Tag value.",
+                        "type": "string"
+                    }
+                },
+                "required": ["tag"]
+            }
+        },
         "item": {
             "type": "object",
             "properties": {
@@ -40,7 +58,7 @@
                         "SNMP_AGENT",
                         "ITEM_TYPE_SCRIPT"
                     ],
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "status": {
                     "enum": [
@@ -57,7 +75,7 @@
                         "CHAR",
                         "LOG",
                         "UNSIGNED",
-                        "TEXT "
+                        "TEXT"
                     ],
                     "type": "string"
                 },
@@ -79,6 +97,9 @@
                 "description": {
                     "type": "string",
                     "description": "Item description"
+                },
+                "tags": {
+                    "$ref": "#/$defs/tags_def"
                 }
             },
             "required": ["uuid", "key", "name"]
@@ -108,8 +129,7 @@
                         "type": "object",
                         "properties": {
                             "uuid": {
-                                "description": "Unique field reference",
-                                "type": "string"
+                                "$ref": "#/$defs/uuid_field"
                             },
                             "name": {
                                 "description": "Group Name",
@@ -125,8 +145,7 @@
                         "type": "object",
                         "properties": {
                             "uuid": {
-                                "description": "Unique field reference",
-                                "type": "string"
+                                "$ref": "#/$defs/uuid_field"
                             },
                             "template": {
                                 "description": "Template ID",
