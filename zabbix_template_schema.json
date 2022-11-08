@@ -25,6 +25,88 @@
                 "additionalProperties": false
             }
         },
+        "item_value_map_def": {
+           "description": "Value map.",
+           "type": "object",
+           "properties": {
+                "name": {
+                    "description": "Name of the value map to use for the item.",
+                    "type": "string"
+                }
+            },
+            "required": [ "name" ],
+            "additionalProperties": false
+        },
+        "item_preprocessing_step_def": {
+            "description": "Individual item value preprocessing step.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "description": "Type of the item value preprocessing step.",
+                    "enum": [
+                        "MULTIPLIER",
+                        "RTRIM",
+                        "LTRIM",
+                        "TRIM",
+                        "REGEX",
+                        "BOOL_TO_DECIMAL",
+                        "OCTAL_TO_DECIMAL",
+                        "HEX_TO_DECIMAL",
+                        "SIMPLE_CHANGE",
+                        "CHANGE_PER_SECOND",
+                        "XMLPATH",
+                        "JSONPATH",
+                        "IN_RANGE",
+                        "MATCHES_REGEX",
+                        "NOT_MATCHES_REGEX",
+                        "CHECK_JSON_ERROR",
+                        "CHECK_XML_ERROR",
+                        "CHECK_REGEX_ERROR",
+                        "DISCARD_UNCHANGED",
+                        "DISCARD_UNCHANGED_HEARTBEAT",
+                        "JAVASCRIPT",
+                        "PROMETHEUS_PATTERN",
+                        "PROMETHEUS_TO_JSON",
+                        "CSV_TO_JSON",
+                        "STR_REPLACE",
+                        "CHECK_NOT_SUPPORTED"
+                    ],
+                    "type": ["string"]                    
+                },
+                "parameters": {
+                    "description": "Root element for parameters of the item value preprocessing step.",
+                    "type": "array",
+                    "items": {
+                        "description": "Individual parameter of the item value preprocessing step.",
+                        "type": "string"
+                    }
+                },
+                "error_handler": {
+                    "description": "Action type used in case of preprocessing step failure.",
+                    "enum": [
+                        "ORIGINAL_ERROR",
+                        "DISCARD_VALUE",
+                        "CUSTOM_VALUE",
+                        "CUSTOM_ERROR"
+                    ],
+                    "default": "ORIGINAL_ERROR",
+                    "type": "string"
+                },
+                "error_handler_params": {
+                    "description": "Error handler parameters used with 'error_handler'.",
+                    "type": "string"
+                }
+            },
+            "required": [ "type", "parameters" ]
+        },
+        "item_preprocessing_def": {
+            "description": "Root element for item value preprocessing.",
+            "type": "array",
+            "items":{
+                "$ref": "#/$defs/item_preprocessing_step_def"
+            }
+        },
         "snmp_type_conditional": {
             "if": {
                 "anyOf": [
@@ -37,12 +119,17 @@
                     "snmp_oid": { 
                         "description": "SNMP object ID.",
                         "type": "string"
-                        }
                     },
+                    "port": {
+                        "description": "Custom port monitored by the item.\nCan contain user macros.\n\nUsed only by SNMP items.",
+                        "type": "string"
+                    }
+
+                },
                 "required": [ "snmp_oid" ]
             },
             "else": {
-                "not": { "required": [ "snmp_oid" ] }
+                "not": { "required": [ "snmp_oid", "port" ] }
             }
         },
         "trap_type_conditional": {
@@ -219,7 +306,14 @@
                 },
                 "tags": {
                     "$ref": "#/$defs/tags_def"
+                },
+                "valuemap": {
+                    "$ref": "#/$defs/item_value_map_def"
+                },
+                "preprocessing": {
+                    "$ref": "#/$defs/item_preprocessing_def"
                 }
+
             },
             "allOf": [ 
                 { "$ref": "#/$defs/snmp_type_conditional" },
