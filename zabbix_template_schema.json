@@ -1,0 +1,107 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Zabbix Template",
+    "description": "Template for producing Zabbix Templates",
+    "type": "object",
+    "properties": {
+        "zabbix_export":{
+            "description": "Root object for template",
+            "type": "object",
+            "properties": {
+                "version": {
+                    "description": "Minimum Zabbix version this is compatable with",
+                    "type": "string"
+                },
+                "date": {
+                    "description": "Cate/Modification date for template",
+                    "type": "string"
+                },
+                "groups": {
+                    "description": "Groups This template is associated with",
+                    "type": "array",
+                    "items":{
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "description": "Unique field reference",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "Group Name",
+                                "type": "string"
+                            }
+                        },
+                        "required": [ "uuid" ]
+                    }
+                },
+                "templates": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "description": "Unique field reference",
+                                "type": "string"
+                            },
+                            "template": {
+                                "description": "Template ID",
+                                "type": "string"
+                            },
+                            "name": {
+                                "description": "Template Name",
+                                "type": "string"
+                            },
+                            "groups": {
+                                "description": "Groups to create which this template will be a member of",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "description": "Group Name",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "uuid": {
+                                            "description": "Unique field reference",
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "description": "Name of item",
+                                            "type": "string"
+                                        },
+                                        "type": {
+                                            "description": "Item type to use",
+                                            "oneOf": [
+                                                {
+                                                    "enum": [
+                                                        "SNMP_AGENT"
+                                                    ],
+                                                    "type": "string"
+                                                }
+                                            ]
+                                        },
+                                        "key": {
+                                            "description": "Unique key identifier",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": ["uuid"]
+                                }
+                            }
+                        },
+                        "required": ["uuid"]
+                    }
+                }
+            },
+            "required": ["version","date","templates"]
+        }
+    }
+}
