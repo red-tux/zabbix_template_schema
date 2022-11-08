@@ -3,7 +3,8 @@
         "uuid_field": {
             "description": "Unique field reference",
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "pattern": "[A-Za-z0-9]{32}"
         },
         "tags_def": {
             "description": "Root element for item tags.",
@@ -20,11 +21,128 @@
                         "type": "string"
                     }
                 },
-                "required": ["tag"]
+                "required": ["tag"],
+                "additionalProperties": false
+            }
+        },
+        "snmp_type_conditional": {
+            "if": {
+                "anyOf": [
+                    { "properties": { "type": {"const": "SNMP_AGENT" } } },
+                    { "properties": { "type": {"const": "SNMP_TRAP" } } }
+                ]
+            },
+            "then": {
+                "properties": { 
+                    "snmp_oid": { 
+                        "description": "SNMP object ID.",
+                        "type": "string"
+                        }
+                    },
+                "required": [ "snmp_oid" ]
+            },
+            "else": {
+                "not": { "required": [ "snmp_oid" ] }
+            }
+        },
+        "trap_type_conditional": {
+            "if": { "properties": { "type": {"const": "TRAP" } } },
+            "then": {
+                "properties": { 
+                    "allowed_hosts": { 
+                        "description": "List of IP addresses (comma delimited) of hosts allowed sending data for the item.\n\nUsed by trapper and HTTP agent items.",
+                        "type": "string"
+                    }
+                }
+            },
+            "else": {
+                "not": { "required": [ "allowed_hosts" ] }
+            }
+
+        },
+        "allowed_hosts_conditional": {
+            "if": {
+                "anyOf": [
+                    { "properties": { "type": {"const": "TRAP" } } },
+                    { "properties": { "type": {"const": "HTTP_AGENT" } } }
+                ]
+            },
+            "then": {
+                "properties": { 
+                    "allowed_hosts": { 
+                        "description": "List of IP addresses (comma delimited) of hosts allowed sending data for the item.\n\nUsed by trapper and HTTP agent items.",
+                        "type": "string"
+                    }
+                }
+            },
+            "else": {
+                "not": { "required": [ "allowed_hosts" ] }
+            }
+        },
+        "authtype_conditional": {
+            "$comment": "First check if the type is SSH or HTTP_AGENT",
+            "if": {
+                "anyOf": [
+                    { "properties": { "type": { "const": "SSH"} } },
+                    { "properties": { "type": { "const": "HTTP_AGENT"} } }
+                ]
+            },
+            "then": {
+                "if": { "properties": { "type": { "const": "SSH"} } },
+                "then": {
+                    "$comment": "We have an SSH type, let's set the property accordingly",
+                    "properties": { 
+                        "authtype": { 
+                            "description": "Authentication type.\n\nUsed only by SSH and HTTP agent items.",
+                            "enum": [
+                                "PASSWORD",
+                                "PUBLIC_KEY"
+                            ],
+                            "default": "PASSWORD",
+                            "type": "string"
+                        }
+                    }
+                },
+                "else": {
+                    "$comment": "We have an HTTP_AGENT type, let's set the property accordingly",
+                    "properties": { 
+                        "authtype": { 
+                            "description": "Authentication type.\n\nUsed only by SSH and HTTP agent items.",
+                            "enum": [
+                                "NONE",
+                                "BASIC",
+                                "NTLM"
+                            ],
+                            "default": "NONE",
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "else": {
+                "not": { "required": [ "authtype" ] }
+            }
+        },
+        "ipmi_type_conditional": {
+            "if": { 
+                "properties": { "type": {"const": "IPMI" } } 
+            },
+            "then": {
+                "properties": { 
+                    "ipmi_sensor": { 
+                        "description": "IPMI sensor.\n\nUsed only by IPMI items.",
+                        "type": "string"
+                    }
+                }
+            },
+            "else": {
+                "not": { "required": [ "ipmi_sensor" ] }
             }
         },
         "item": {
             "type": "object",
+            "required": ["uuid", "key", "name"],
+            "unevaluatedProperties": false,            
             "properties": {
                 "uuid": {
                     "$ref": "#/$defs/uuid_field"
@@ -103,50 +221,12 @@
                     "$ref": "#/$defs/tags_def"
                 }
             },
-            "allOf": [
-                {
-                    "if": {
-                        "anyOf": [
-                            { "properties": { "type": {"const": "SNMP_AGENT" } } },
-                            { "properties": { "type": {"const": "SNMP_TRAP" } } }
-                        ]
-                    },
-                    "then": {
-                        "properties": { 
-                            "snmp_oid": { 
-                                "description": "SNMP object ID.",
-                                "type": "string"
-                                }
-                            },
-                        "required": [ "snmp_oid" ]
-                    },
-                    "else": {
-                        "not": { "required": [ "snmp_oid" ] }
-                    }
-                },
-                {
-                    "if": {
-                        "anyOf": [
-                            { "properties": { "type": {"const": "TRAP" } } },
-                            { "properties": { "type": {"const": "HTTP_AGENT" } } }
-                        ]
-                    },
-                    "then": {
-                        "properties": { 
-                            "allowed_hosts": { 
-                                "description": "List of IP addresses (comma delimited) of hosts allowed sending data for the item.\n\nUsed by trapper and HTTP agent items.",
-                                "type": "string"
-                                }
-                            },
-                        "required": [ "allowed_hosts" ]
-                    },
-                    "else": {
-                        "not": { "required": [ "allowed_hosts" ] }
-                    }
-                }
-            ],
-            "required": ["uuid", "key", "name"],
-            "unevaluatedProperties": false
+            "allOf": [ 
+                { "$ref": "#/$defs/snmp_type_conditional" },
+                { "$ref": "#/$defs/allowed_hosts_conditional" },
+                { "$ref": "#/$defs/authtype_conditional"},
+                { "$ref": "#/$defs/ipmi_type_conditional" }
+            ]
         }
     },
     "$schema": "https://json-schema.org/draft/2020-12/schema",
